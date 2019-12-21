@@ -29,7 +29,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             
 //            window.rootViewController = UIHostingController(rootView: contentView)
             
-            window.rootViewController = HomeController()
+            window.rootViewController = MainController()
             self.window = window
             window.makeKeyAndVisible()
         }
