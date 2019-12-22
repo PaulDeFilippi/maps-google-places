@@ -34,7 +34,56 @@ class MainController: UIViewController {
         
         setupRegionForMap()
         
-        setupAnnotationsForMap()
+        //setupAnnotationsForMap()
+        performLocalSearch()
+    }
+    
+    fileprivate func performLocalSearch() {
+        let request = MKLocalSearch.Request()
+        request.naturalLanguageQuery = "airport"
+        request.region = mapView.region
+        
+        let localSearch = MKLocalSearch(request: request)
+        localSearch.start { (resp, err) in
+            if let err = err {
+                print("Failed local search:", err)
+            }
+            
+            resp?.mapItems.forEach({ (mapItem) in
+                print(mapItem.name ?? "")
+                
+                let placemark = mapItem.placemark
+                var addressString = ""
+                
+                if placemark.subThoroughfare != nil {
+                    addressString = placemark.subThoroughfare! + " "
+                }
+                if placemark.thoroughfare != nil {
+                    addressString += placemark.thoroughfare! + ", "
+                }
+                if placemark.postalCode != nil {
+                    addressString += placemark.postalCode! + " "
+                }
+                if placemark.locality != nil {
+                    addressString += placemark.locality! + ", "
+                }
+                if placemark.administrativeArea != nil {
+                    addressString += placemark.administrativeArea! + " "
+                }
+                if placemark.country != nil {
+                    addressString += placemark.country!
+                }
+                print(addressString)
+                
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = mapItem.placemark.coordinate
+                annotation.title = mapItem.name
+                self.mapView.addAnnotation(annotation)
+                
+            })
+            
+            self.mapView.showAnnotations(self.mapView.annotations, animated: true)
+        }
     }
     
     fileprivate func setupAnnotationsForMap() {
@@ -54,7 +103,7 @@ class MainController: UIViewController {
     }
     
     fileprivate func setupRegionForMap() {
-        let centerCoordinate = CLLocationCoordinate2D(latitude: 37.7666, longitude: -122.427290)
+        let centerCoordinate = CLLocationCoordinate2D(latitude: 34.8519, longitude: -82.385318)
         let span = MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
         let region = MKCoordinateRegion(center: centerCoordinate, span: span)
         mapView.setRegion(region, animated: true)
