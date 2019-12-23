@@ -35,45 +35,59 @@ class MainController: UIViewController {
         setupRegionForMap()
         
         //setupAnnotationsForMap()
+        
         performLocalSearch()
+        setupSearchUI()
+    }
+    
+    let searchTextField = UITextField(placeholder: "Search query")
+    
+    fileprivate func setupSearchUI() {
+        let whiteContainerView = UIView(backgroundColor: .white)
+        view.addSubview(whiteContainerView)
+        whiteContainerView.anchor(top: view.safeAreaLayoutGuide.topAnchor, leading: view.leadingAnchor, bottom: nil, trailing: view.trailingAnchor, padding: .init(top: 0, left: 16, bottom: 0, right: 16))
+        
+        whiteContainerView.stack(searchTextField).withMargins(.allSides(16))
+        // listen for text changes - old school way
+        //searchTextField.addTarget(self, action: #selector(handleSearchChanges), for: .editingChanged)
+        
+        // new school - search throttling
+        // search on the last keystroke of text changes and wait 500ms
+        
+        NotificationCenter.default
+            .publisher(for: UITextField.textDidChangeNotification, object: searchTextField)
+            .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
+            .sink { (_) in
+                print(121212121)
+                self.performLocalSearch()
+        }
+        
+    }
+    
+    @objc fileprivate func handleSearchChanges() {
+        performLocalSearch()
+        
     }
     
     fileprivate func performLocalSearch() {
         let request = MKLocalSearch.Request()
-        request.naturalLanguageQuery = "airport"
+        request.naturalLanguageQuery = searchTextField.text
         request.region = mapView.region
         
         let localSearch = MKLocalSearch(request: request)
         localSearch.start { (resp, err) in
             if let err = err {
                 print("Failed local search:", err)
+                return
             }
             
+            // remove old annotations
+            self.mapView.removeAnnotations(self.mapView.annotations)
+            
             resp?.mapItems.forEach({ (mapItem) in
-                print(mapItem.name ?? "")
+                print(mapItem.address())
                 
-                let placemark = mapItem.placemark
-                var addressString = ""
                 
-                if placemark.subThoroughfare != nil {
-                    addressString = placemark.subThoroughfare! + " "
-                }
-                if placemark.thoroughfare != nil {
-                    addressString += placemark.thoroughfare! + ", "
-                }
-                if placemark.postalCode != nil {
-                    addressString += placemark.postalCode! + " "
-                }
-                if placemark.locality != nil {
-                    addressString += placemark.locality! + ", "
-                }
-                if placemark.administrativeArea != nil {
-                    addressString += placemark.administrativeArea! + " "
-                }
-                if placemark.country != nil {
-                    addressString += placemark.country!
-                }
-                print(addressString)
                 
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = mapItem.placemark.coordinate
@@ -107,6 +121,32 @@ class MainController: UIViewController {
         let span = MKCoordinateSpan(latitudeDelta: 0.1, longitudeDelta: 0.1)
         let region = MKCoordinateRegion(center: centerCoordinate, span: span)
         mapView.setRegion(region, animated: true)
+    }
+}
+
+extension MKMapItem {
+    func address() -> String {
+        var addressString = ""
+        
+        if placemark.subThoroughfare != nil {
+            addressString = placemark.subThoroughfare! + " "
+        }
+        if placemark.thoroughfare != nil {
+            addressString += placemark.thoroughfare! + ", "
+        }
+        if placemark.postalCode != nil {
+            addressString += placemark.postalCode! + " "
+        }
+        if placemark.locality != nil {
+            addressString += placemark.locality! + ", "
+        }
+        if placemark.administrativeArea != nil {
+            addressString += placemark.administrativeArea! + " "
+        }
+        if placemark.country != nil {
+            addressString += placemark.country!
+        }
+        return addressString
     }
 }
 
