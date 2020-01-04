@@ -38,6 +38,49 @@ class MainController: UIViewController {
         
         performLocalSearch()
         setupSearchUI()
+        setupLocationsCarousel()
+    }
+    
+    let locationsController = LocationCarouselController(scrollDirection: .horizontal)
+    
+    fileprivate func setupLocationsCarousel() {
+        let locationsView = locationsController.view!
+        view.addSubview(locationsView)
+        locationsView.anchor(top: nil, leading: view.leadingAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, trailing: view.trailingAnchor, size: .init(width: 0, height: 150))
+    }
+    
+    class LocationCell: LBTAListCell<String> {
+        override func setupViews() {
+            backgroundColor = .red
+            
+            setupShadow(opacity: 0.2, radius: 5, offset: .zero, color: .black)
+            layer.cornerRadius = 5
+            clipsToBounds = false
+        }
+    }
+    
+    class LocationCarouselController: LBTAListController<LocationCell, String>, UICollectionViewDelegateFlowLayout {
+        
+        func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
+            return .init(top: 0, left: 16, bottom: 0, right: 16)
+        }
+        
+        func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
+            return .init(width: view.frame.width - 64, height: view.frame.height)
+        }
+        
+        func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
+            return 12
+        }
+        
+        override func viewDidLoad() {
+            super.viewDidLoad()
+            collectionView.clipsToBounds = false
+            collectionView.backgroundColor = .clear
+            
+            self.items = ["1", "2", "3"]
+        }
+        
     }
     
     let searchTextField = UITextField(placeholder: "Search query")
@@ -54,7 +97,7 @@ class MainController: UIViewController {
         // new school - search throttling
         // search on the last keystroke of text changes and wait 500ms
         
-        NotificationCenter.default
+        _ = NotificationCenter.default
             .publisher(for: UITextField.textDidChangeNotification, object: searchTextField)
             .debounce(for: .milliseconds(500), scheduler: RunLoop.main)
             .sink { (_) in
@@ -67,6 +110,7 @@ class MainController: UIViewController {
     @objc fileprivate func handleSearchChanges() {
         performLocalSearch()
         
+        
     }
     
     fileprivate func performLocalSearch() {
@@ -78,7 +122,7 @@ class MainController: UIViewController {
         localSearch.start { (resp, err) in
             if let err = err {
                 print("Failed local search:", err)
-                return
+                //return
             }
             
             // remove old annotations
