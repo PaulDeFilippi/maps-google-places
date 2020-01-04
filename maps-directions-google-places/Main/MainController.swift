@@ -48,41 +48,7 @@ class MainController: UIViewController {
         view.addSubview(locationsView)
         locationsView.anchor(top: nil, leading: view.leadingAnchor, bottom: view.safeAreaLayoutGuide.bottomAnchor, trailing: view.trailingAnchor, size: .init(width: 0, height: 150))
     }
-    
-    class LocationCell: LBTAListCell<String> {
-        override func setupViews() {
-            backgroundColor = .red
-            
-            setupShadow(opacity: 0.2, radius: 5, offset: .zero, color: .black)
-            layer.cornerRadius = 5
-            clipsToBounds = false
-        }
-    }
-    
-    class LocationCarouselController: LBTAListController<LocationCell, String>, UICollectionViewDelegateFlowLayout {
-        
-        func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-            return .init(top: 0, left: 16, bottom: 0, right: 16)
-        }
-        
-        func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-            return .init(width: view.frame.width - 64, height: view.frame.height)
-        }
-        
-        func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-            return 12
-        }
-        
-        override func viewDidLoad() {
-            super.viewDidLoad()
-            collectionView.clipsToBounds = false
-            collectionView.backgroundColor = .clear
-            
-            self.items = ["1", "2", "3"]
-        }
-        
-    }
-    
+
     let searchTextField = UITextField(placeholder: "Search query")
     
     fileprivate func setupSearchUI() {
@@ -109,8 +75,6 @@ class MainController: UIViewController {
     
     @objc fileprivate func handleSearchChanges() {
         performLocalSearch()
-        
-        
     }
     
     fileprivate func performLocalSearch() {
@@ -130,8 +94,6 @@ class MainController: UIViewController {
             
             resp?.mapItems.forEach({ (mapItem) in
                 print(mapItem.address())
-                
-                
                 
                 let annotation = MKPointAnnotation()
                 annotation.coordinate = mapItem.placemark.coordinate
@@ -168,32 +130,6 @@ class MainController: UIViewController {
     }
 }
 
-extension MKMapItem {
-    func address() -> String {
-        var addressString = ""
-        
-        if placemark.subThoroughfare != nil {
-            addressString = placemark.subThoroughfare! + " "
-        }
-        if placemark.thoroughfare != nil {
-            addressString += placemark.thoroughfare! + ", "
-        }
-        if placemark.postalCode != nil {
-            addressString += placemark.postalCode! + " "
-        }
-        if placemark.locality != nil {
-            addressString += placemark.locality! + ", "
-        }
-        if placemark.administrativeArea != nil {
-            addressString += placemark.administrativeArea! + " "
-        }
-        if placemark.country != nil {
-            addressString += placemark.country!
-        }
-        return addressString
-    }
-}
-
 // SwiftUI Preview
 import SwiftUI
 
@@ -209,7 +145,6 @@ struct MainPreview: PreviewProvider {
         }
         
         func updateUIViewController(_ uiViewController: MainController, context: UIViewControllerRepresentableContext<MainPreview.ContainerView>) {
-            
         }
         
         typealias UIViewControllerType = MainController
