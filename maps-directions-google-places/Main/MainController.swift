@@ -39,6 +39,7 @@ class MainController: UIViewController {
         performLocalSearch()
         setupSearchUI()
         setupLocationsCarousel()
+        locationsController.mainController = self
     }
     
     let locationsController = LocationCarouselController(scrollDirection: .horizontal)
@@ -58,7 +59,7 @@ class MainController: UIViewController {
         
         whiteContainerView.stack(searchTextField).withMargins(.allSides(16))
         // listen for text changes - old school way
-        //searchTextField.addTarget(self, action: #selector(handleSearchChanges), for: .editingChanged)
+        searchTextField.addTarget(self, action: #selector(handleSearchChanges), for: .editingChanged)
         
         // new school - search throttling
         // search on the last keystroke of text changes and wait 500ms
@@ -82,15 +83,22 @@ class MainController: UIViewController {
         request.naturalLanguageQuery = searchTextField.text
         request.region = mapView.region
         
+        mapView.annotations.forEach { (annotation) in
+            if annotation.title == "TEST" {
+                mapView.selectAnnotation(annotation, animated: true)
+            }
+        }
+        
         let localSearch = MKLocalSearch(request: request)
         localSearch.start { (resp, err) in
             if let err = err {
                 print("Failed local search:", err)
-                //return
+                return
             }
             
             // remove old annotations
             self.mapView.removeAnnotations(self.mapView.annotations)
+            self.locationsController.items.removeAll()
             
             resp?.mapItems.forEach({ (mapItem) in
                 print(mapItem.address())
@@ -100,7 +108,10 @@ class MainController: UIViewController {
                 annotation.title = mapItem.name
                 self.mapView.addAnnotation(annotation)
                 
+                self.locationsController.items.append(mapItem)
             })
+
+            self.locationsController.collectionView.scrollToItem(at:[0, 0], at: .centeredHorizontally, animated: true)
             
             self.mapView.showAnnotations(self.mapView.annotations, animated: true)
         }
